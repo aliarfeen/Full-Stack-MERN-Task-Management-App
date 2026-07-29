@@ -9,7 +9,8 @@
     "build": "tsc",
     "start": "npm run build && node dist/server.js",
     "db:migrate": "tsc && node dist/db/migrate.js",
-    "db:seed": "tsc && node dist/db/seed.js"
+    "db:seed": "tsc && node dist/db/seed.js",
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",
@@ -33,6 +34,10 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.0.0",
-    "typescript": "^5.7.0"
+    "@types/supertest": "^7.2.1",
+    "mongodb-memory-server": "^11.2.0",
+    "supertest": "^7.2.2",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.10"
   }
 }
