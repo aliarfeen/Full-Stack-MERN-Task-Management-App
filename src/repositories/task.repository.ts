@@ -3,7 +3,9 @@ import Task from "../models/Task.js";
 
 export class TaskRepository {
   async create(taskData: Partial<ITask>): Promise<ITask> {
-    return await Task.create(taskData);
+    const created = await Task.create(taskData);
+    const populated = await this.findById(created._id.toString());
+    return populated || created;
   }
 
   async findAllByProjectId(
@@ -15,7 +17,10 @@ export class TaskRepository {
     if (filter.priority) query.priority = filter.priority;
     if (filter.assignee) query.assignee = filter.assignee;
 
-    const queryBuilder = Task.find(query).sort({ createdAt: -1 });
+    const queryBuilder = Task.find(query)
+      .populate("creator", "fullName email")
+      .populate("assignee", "fullName email")
+      .sort({ createdAt: -1 });
 
     if (filter.skip !== undefined) queryBuilder.skip(filter.skip);
     if (filter.limit !== undefined) queryBuilder.limit(filter.limit);
@@ -37,14 +42,18 @@ export class TaskRepository {
 
 
   async findById(id: string): Promise<ITask | null> {
-    return await Task.findById(id);
+    return await Task.findById(id)
+      .populate("creator", "fullName email")
+      .populate("assignee", "fullName email");
   }
 
   async update(id: string, updateData: Partial<ITask>): Promise<ITask | null> {
     return await Task.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
-    });
+    })
+      .populate("creator", "fullName email")
+      .populate("assignee", "fullName email");
   }
 
   async delete(id: string): Promise<ITask | null> {
