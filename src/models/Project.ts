@@ -1,13 +1,19 @@
 import mongoose from "mongoose";
-import { IProject } from "../types/index.js";
+import { IProject, ProjectStatus } from "../types/index.js";
 
 const projectSchema = new mongoose.Schema<IProject>(
   { 
-    userId: { 
+    owner: { 
       type: mongoose.Schema.Types.ObjectId, 
       ref: "User", 
       required: true 
     },
+    members: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      }
+    ],
     title: {
       type: String, 
       required: true,
@@ -20,16 +26,17 @@ const projectSchema = new mongoose.Schema<IProject>(
     },
     status: {
       type: String,
-      enum: ["PENDING","IN_PROGRESS","DONE"],
-      default: "PENDING",
+      enum: Object.values(ProjectStatus),
+      default: ProjectStatus.PENDING,
       required: true,
     }
   },
   { timestamps: true }
 );
 
-// Compound index for efficient user project queries
-projectSchema.index({ userId: 1, createdAt: -1 });
+// Indexes for efficient querying
+projectSchema.index({ owner: 1, createdAt: -1 });
+projectSchema.index({ members: 1 });
 
 const Project = mongoose.model<IProject>("Project", projectSchema);
 export default Project;

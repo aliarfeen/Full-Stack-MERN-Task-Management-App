@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { IUser } from "../types/index.js";
+import { IUser, UserRole } from "../types/index.js";
 
 const userSchema = new mongoose.Schema<IUser>(
   {
@@ -19,6 +19,12 @@ const userSchema = new mongoose.Schema<IUser>(
       type: String, 
       required: true, 
       minlength: 6 
+    },
+    role: {
+      type: String,
+      enum: Object.values(UserRole),
+      default: UserRole.MEMBER,
+      required: true,
     }
   },
   { timestamps: true }
@@ -26,3 +32,4 @@ const userSchema = new mongoose.Schema<IUser>(
 
 const User = mongoose.model<IUser>("User", userSchema);
 export default User;
+
