@@ -1,7 +1,8 @@
 import bcrypt from "bcryptjs";
 import { AuthRepository } from "../repositories/auth.repository.js";
 import { AppError } from "../lib/appError.js";
-import { IUser } from "../types/index.js";
+import { IUser, UserRole } from "../types/index.js";
+
 
 export class AuthUseCase {
   private authRepo: AuthRepository;
@@ -29,8 +30,10 @@ export class AuthUseCase {
       fullName,
       email,
       password: hashedPassword,
+      role: UserRole.MEMBER,
     });
   }
+
 
   async loginUser(email?: string, password?: string): Promise<IUser> {
     if (!email || !password) {

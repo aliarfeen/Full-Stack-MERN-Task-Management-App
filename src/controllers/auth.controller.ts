@@ -18,6 +18,7 @@ export const register = async (req: Request, res: Response, next: NextFunction):
           id: newUser._id,
           fullName: newUser.fullName,
           email: newUser.email,
+          role: newUser.role,
         },
       },
     });
@@ -41,9 +42,11 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
           id: user._id,
           fullName: user.fullName,
           email: user.email,
+          role: user.role,
         },
       },
     });
+
   } catch (error) {
     next(error);
   }
