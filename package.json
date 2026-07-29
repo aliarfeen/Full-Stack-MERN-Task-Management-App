@@ -6,7 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "tsc && node dist/server.js",
-    "build": "tsc",
+    "dev:server": "tsc && node dist/server.js",
+    "dev:client": "npm run dev --prefix client",
+    "dev:all": "npx concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "build": "tsc && npm run build --prefix client",
     "start": "npm run build && node dist/server.js",
     "db:migrate": "tsc && node dist/db/migrate.js",
     "db:seed": "tsc && node dist/db/seed.js",
