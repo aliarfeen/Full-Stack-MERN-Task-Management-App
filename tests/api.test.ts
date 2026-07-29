@@ -92,7 +92,7 @@ describe("Task Management Backend API Tests", () => {
 
   // ─── 2. Authorization & Roles ─────────────────────
   describe("2. Authorization & Role-Based Access Control", () => {
-    it("should allow ADMIN to add/remove project members but forbid MEMBER", async () => {
+    it("should allow Project Owner and ADMIN to add/remove project members but forbid non-owner members", async () => {
       // Create Admin user
       const adminRegister = await request(app).post("/api/auth/register").send({
         fullName: "Admin User",
@@ -113,35 +113,51 @@ describe("Task Management Backend API Tests", () => {
       const member1Token = member1Register.body.data.token;
 
       // Create Member user 2 (to be added as project member)
-      await request(app).post("/api/auth/register").send({
+      const member2Register = await request(app).post("/api/auth/register").send({
         fullName: "Member Two",
         email: "member2@example.com",
         password: "password123",
       });
+      const member2Token = member2Register.body.data.token;
 
-      // Member 1 creates a project
+      // Create Member user 3 (outsider)
+      const member3Register = await request(app).post("/api/auth/register").send({
+        fullName: "Member Three",
+        email: "member3@example.com",
+        password: "password123",
+      });
+      const member3Token = member3Register.body.data.token;
+
+      // Member 1 creates a project (becomes Project Owner)
       const projRes = await request(app)
         .post("/api/project")
         .set("Authorization", `Bearer ${member1Token}`)
         .send({ title: "Secret Project", description: "Admin test" });
       const projectId = projRes.body.data._id;
 
-      // Member 1 (MEMBER role) attempts to add member 2 -> Should return 403 Forbidden
-      const memberAddRes = await request(app)
+      // Member 1 (Project Owner) adds Member 2 -> Should succeed (200)
+      const ownerAddRes = await request(app)
         .post(`/api/project/${projectId}/members`)
         .set("Authorization", `Bearer ${member1Token}`)
         .send({ email: "member2@example.com" });
-      expect(memberAddRes.status).toBe(403);
+      expect(ownerAddRes.status).toBe(200);
+      expect(ownerAddRes.body.data.members).toHaveLength(2);
 
-      // Admin user attempts to add member 2 -> Should succeed (200)
-      const adminAddRes = await request(app)
+      // Member 2 (Regular project member, non-owner) attempts to add Member 3 -> Should return 403 Forbidden
+      const nonOwnerAddRes = await request(app)
         .post(`/api/project/${projectId}/members`)
-        .set("Authorization", `Bearer ${adminToken}`)
-        .send({ email: "member2@example.com" });
-      expect(adminAddRes.status).toBe(200);
-      expect(adminAddRes.body.data.members).toHaveLength(2);
+        .set("Authorization", `Bearer ${member2Token}`)
+        .send({ email: "member3@example.com" });
+      expect(nonOwnerAddRes.status).toBe(403);
 
-      // Admin user removes member 2 -> Should succeed (200)
+      // Member 3 (Outsider) attempts to add Member 3 -> Should return 404 Not Found
+      const outsiderAddRes = await request(app)
+        .post(`/api/project/${projectId}/members`)
+        .set("Authorization", `Bearer ${member3Token}`)
+        .send({ email: "member3@example.com" });
+      expect(outsiderAddRes.status).toBe(404);
+
+      // Admin user removes Member 2 -> Should succeed (200)
       const adminRemoveRes = await request(app)
         .delete(`/api/project/${projectId}/members`)
         .set("Authorization", `Bearer ${adminToken}`)

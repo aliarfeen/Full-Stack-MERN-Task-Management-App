@@ -30,14 +30,24 @@ export class ProjectUseCase {
     return await this.projectRepo.findAllByMembership(userId);
   }
 
+  private toIdString(entity: any): string {
+    if (!entity) return "";
+    if (typeof entity === "string") return entity;
+    if (entity._id) return entity._id.toString();
+    if (entity.id) return entity.id.toString();
+    return entity.toString();
+  }
+
   async getProjectById(id: string, userId: string, userRole?: UserRole): Promise<IProject> {
     const project = await this.projectRepo.findById(id);
     if (!project) {
       throw new AppError("Project not found or unauthorized access", 404);
     }
 
-    const isOwner = project.owner.toString() === userId;
-    const isMember = project.members.some((memberId) => memberId.toString() === userId);
+    const ownerIdStr = this.toIdString(project.owner);
+    const reqIdStr = this.toIdString(userId);
+    const isOwner = ownerIdStr === reqIdStr;
+    const isMember = project.members.some((m: any) => this.toIdString(m) === reqIdStr);
     const isAdmin = userRole === UserRole.ADMIN;
 
     if (!isOwner && !isMember && !isAdmin) {
@@ -64,8 +74,15 @@ export class ProjectUseCase {
   }
 
   async addMember(projectId: string, targetEmail: string, requesterId: string, requesterRole: UserRole): Promise<IProject> {
-    // Ensure requester has access to the project
-    await this.getProjectById(projectId, requesterId, requesterRole);
+    const project = await this.getProjectById(projectId, requesterId, requesterRole);
+
+    const ownerIdStr = this.toIdString(project.owner);
+    const reqIdStr = this.toIdString(requesterId);
+    const isOwner = ownerIdStr === reqIdStr;
+    const isAdmin = requesterRole === UserRole.ADMIN;
+    if (!isOwner && !isAdmin) {
+      throw new AppError("Only project owners or admins can manage project members", 403);
+    }
 
     const targetUser = await this.authRepo.findUserByEmail(targetEmail);
     if (!targetUser) {
@@ -81,12 +98,20 @@ export class ProjectUseCase {
   async removeMember(projectId: string, targetEmail: string, requesterId: string, requesterRole: UserRole): Promise<IProject> {
     const project = await this.getProjectById(projectId, requesterId, requesterRole);
 
+    const ownerIdStr = this.toIdString(project.owner);
+    const reqIdStr = this.toIdString(requesterId);
+    const isOwner = ownerIdStr === reqIdStr;
+    const isAdmin = requesterRole === UserRole.ADMIN;
+    if (!isOwner && !isAdmin) {
+      throw new AppError("Only project owners or admins can manage project members", 403);
+    }
+
     const targetUser = await this.authRepo.findUserByEmail(targetEmail);
     if (!targetUser) {
       throw new AppError("User with this email not found", 404);
     }
 
-    if (project.owner.toString() === targetUser._id.toString()) {
+    if (ownerIdStr === this.toIdString(targetUser._id)) {
       throw new AppError("Cannot remove project owner from members", 400);
     }
 

@@ -18,8 +18,12 @@ export class TaskUseCase {
       throw new AppError("Project not found or unauthorized access", 404);
     }
 
-    const isOwner = project.owner.toString() === userId;
-    const isMember = project.members.some((memberId: Types.ObjectId) => memberId.toString() === userId);
+    const ownerIdStr = project.owner._id ? project.owner._id.toString() : project.owner.toString();
+    const isOwner = ownerIdStr === userId;
+    const isMember = project.members.some((m: any) => {
+      const mId = m._id ? m._id.toString() : m.toString();
+      return mId === userId;
+    });
     const isAdmin = userRole === UserRole.ADMIN;
 
     if (!isOwner && !isMember && !isAdmin) {
@@ -33,7 +37,10 @@ export class TaskUseCase {
 
     if (taskData.assignee) {
       const assigneeStr = taskData.assignee.toString();
-      const isAssigneeMember = project!.members.some((m) => m.toString() === assigneeStr) || project!.owner.toString() === assigneeStr;
+      const ownerIdStr = project!.owner._id ? project!.owner._id.toString() : project!.owner.toString();
+      const isAssigneeMember =
+        project!.members.some((m: any) => (m._id ? m._id.toString() : m.toString()) === assigneeStr) ||
+        ownerIdStr === assigneeStr;
       if (!isAssigneeMember) {
         throw new AppError("Assignee must be a member or owner of the project", 400);
       }
@@ -89,7 +96,10 @@ export class TaskUseCase {
     if (updateData.assignee) {
       const project = await this.projectRepo.findById(task.projectId.toString());
       const assigneeStr = updateData.assignee.toString();
-      const isAssigneeMember = project!.members.some((m) => m.toString() === assigneeStr) || project!.owner.toString() === assigneeStr;
+      const ownerIdStr = project!.owner._id ? project!.owner._id.toString() : project!.owner.toString();
+      const isAssigneeMember =
+        project!.members.some((m: any) => (m._id ? m._id.toString() : m.toString()) === assigneeStr) ||
+        ownerIdStr === assigneeStr;
       if (!isAssigneeMember) {
         throw new AppError("Assignee must be a member or owner of the project", 400);
       }

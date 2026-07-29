@@ -34,9 +34,9 @@ router.route("/:id")
   .put(validate(updateProjectSchema), updateProject)
   .delete(validate(projectParamsSchema), deleteProject);
 
-// Member management (Admin only)
+// Member management (Project Owner or Admin)
 router.route("/:id/members")
-  .post(authorize(UserRole.ADMIN), validate(addMemberSchema), addMember)
-  .delete(authorize(UserRole.ADMIN), validate(removeMemberSchema), removeMember);
+  .post(validate(addMemberSchema), addMember)
+  .delete(validate(removeMemberSchema), removeMember);
 
 export default router;
