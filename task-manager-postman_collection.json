@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "7b0f01e7-0b76-4b56-a820-e46bd68b3f42",
     "name": "Electropi API",
-    "description": "Postman collection for the Electropi Express API.",
+    "description": "Postman collection for the Electropi Express Task Management API.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -166,6 +166,41 @@
       ]
     },
     {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Search Users by Email",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/search?email=example",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "example"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Project",
       "item": [
         {
@@ -297,6 +332,72 @@
           "response": []
         },
         {
+          "name": "Add Member to Project (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/project/{{projectId}}/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "project",
+                "{{projectId}}",
+                "members"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Member from Project (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/project/{{projectId}}/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "project",
+                "{{projectId}}",
+                "members"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Delete Project",
           "request": {
             "method": "DELETE",
@@ -359,7 +460,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Build API Endpoints\",\n  \"description\": \"Implement routes and controllers for Tasks\",\n  \"priority\": \"HIGH\",\n  \"dueDate\": \"2026-06-30T12:00:00.000Z\"\n}"
+              "raw": "{\n  \"title\": \"Build API Endpoints\",\n  \"description\": \"Implement routes and controllers for Tasks\",\n  \"priority\": \"HIGH\",\n  \"dueDate\": \"2026-12-30T12:00:00.000Z\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/task/project/{{projectId}}",
@@ -377,7 +478,7 @@
           "response": []
         },
         {
-          "name": "Get Project Tasks",
+          "name": "Get Project Tasks (Filtered)",
           "request": {
             "method": "GET",
             "header": [
@@ -387,7 +488,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/task/project/{{projectId}}?status=PENDING&priority=HIGH&page=1&limit=10",
+              "raw": "{{baseUrl}}/api/task/project/{{projectId}}?status=TODO&priority=HIGH&page=1&limit=10",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -400,11 +501,16 @@
               "query": [
                 {
                   "key": "status",
-                  "value": "PENDING"
+                  "value": "TODO"
                 },
                 {
                   "key": "priority",
                   "value": "HIGH"
+                },
+                {
+                  "key": "assignee",
+                  "value": "",
+                  "disabled": true
                 },
                 {
                   "key": "page",
@@ -509,11 +615,11 @@
     },
     {
       "key": "fullName",
-      "value": "Test User"
+      "value": "Admin User"
     },
     {
       "key": "email",
-      "value": "test@example.com"
+      "value": "admin@example.com"
     },
     {
       "key": "password",
