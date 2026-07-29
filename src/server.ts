@@ -11,14 +11,17 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import authRoutes from "./routes/auth.routes.js";
 import projectRoutes from "./routes/project.routes.js";
 import taskRoutes from "./routes/task.routes.js";
+import userRoutes from "./routes/user.routes.js";
 
 const app = express();
 
 // Security headers
 app.use(helmet());
 
-// Request logging
-app.use(morgan("dev"));
+// Request logging (skip in test mode to keep test output clean)
+if (process.env.NODE_ENV !== "test") {
+  app.use(morgan("dev"));
+}
 
 // CORS configuration
 const corsOptions = {
@@ -33,19 +36,21 @@ app.use(cors(corsOptions));
 // Body parsing
 app.use(express.json({ limit: "4mb" }));
 
-// Rate limit auth endpoints to prevent brute-force attacks
+// Rate limit auth endpoints to prevent brute-force attacks (skip in test)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15-minute window
-  max: 20,                   // 20 requests per window per IP
+  max: 100,
   message: { status: "fail", message: "Too many requests, please try again later" },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === "test",
 });
 
 // Mount API routes
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/project", projectRoutes);
 app.use("/api/task", taskRoutes);
+app.use("/api/users", userRoutes);
 
 // Health check endpoint
 app.use("/api/status", (_req, res) => {
@@ -56,12 +61,17 @@ app.use("/api/status", (_req, res) => {
 app.use(errorHandler);
 
 // Connect to MongoDB & start server
-const startServer = async () => {
+export const startServer = async () => {
   await connectdb();
   const port = process.env.PORT || 5000;
-  app.listen(port, () => {
+  return app.listen(port, () => {
     console.log(`server is running on port ${port}`);
   });
 };
 
-startServer();
+if (process.env.NODE_ENV !== "test") {
+  startServer();
+}
+
+export default app;
+

@@ -3,13 +3,16 @@ import mongoose from "mongoose";
 import { connectdb } from "../lib/db.js";
 import Migration from "./migrationModel.js";
 import * as migration001 from "./migrations/001_ensure_indexes.js";
+import * as migration002 from "./migrations/002_add_roles_members_task_fields.js";
 
 // Load environment variables
 dotenv.config();
 
 const migrations = [
   { name: "001_ensure_indexes", up: migration001.up, down: migration001.down },
+  { name: "002_add_roles_members_task_fields", up: migration002.up, down: migration002.down },
 ];
+
 
 async function runMigrations(): Promise<void> {
   console.log("Starting database migrations...");

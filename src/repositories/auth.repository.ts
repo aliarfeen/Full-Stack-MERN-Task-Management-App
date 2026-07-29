@@ -13,4 +13,11 @@ export class AuthRepository {
   async findUserById(id: string): Promise<IUser | null> {
     return await User.findById(id).select("-password");
   }
+
+  async searchByEmail(emailQuery: string): Promise<Partial<IUser>[]> {
+    return await User.find({
+      email: { $regex: emailQuery, $options: "i" },
+    }).select("_id fullName email role");
+  }
 }
+
