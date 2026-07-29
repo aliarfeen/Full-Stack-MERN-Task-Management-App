@@ -6,8 +6,10 @@ export class ProjectRepository {
     return await Project.create(projectData);
   }
 
-  async findAllByUserId(userId: string): Promise<IProject[]> {
-    return await Project.find({ userId }).sort({ createdAt: -1 });
+  async findAllByMembership(userId: string): Promise<IProject[]> {
+    return await Project.find({
+      $or: [{ owner: userId }, { members: userId }],
+    }).sort({ createdAt: -1 });
   }
 
   async findById(id: string): Promise<IProject | null> {
@@ -23,5 +25,21 @@ export class ProjectRepository {
 
   async delete(id: string): Promise<IProject | null> {
     return await Project.findByIdAndDelete(id);
+  }
+
+  async addMember(projectId: string, userId: string): Promise<IProject | null> {
+    return await Project.findByIdAndUpdate(
+      projectId,
+      { $addToSet: { members: userId } },
+      { new: true }
+    );
+  }
+
+  async removeMember(projectId: string, userId: string): Promise<IProject | null> {
+    return await Project.findByIdAndUpdate(
+      projectId,
+      { $pull: { members: userId } },
+      { new: true }
+    );
   }
 }

@@ -1,17 +1,23 @@
 import express from "express";
 import { protectRoutes } from "../middleware/auth.js";
+import { authorize } from "../middleware/authorize.js";
 import { validate } from "../middleware/validates.js";
+import { UserRole } from "../types/index.js";
 import { 
   createProjectSchema, 
   projectParamsSchema, 
-  updateProjectSchema 
+  updateProjectSchema,
+  addMemberSchema,
+  removeMemberSchema,
 } from "../validators/project.validation.js";
 import {
   createProject,
   getAllProjects,
   getProjectById,
   updateProject,
-  deleteProject
+  deleteProject,
+  addMember,
+  removeMember,
 } from "../controllers/project.controller.js";
 
 const router = express.Router();
@@ -28,4 +34,9 @@ router.route("/:id")
   .put(validate(updateProjectSchema), updateProject)
   .delete(validate(projectParamsSchema), deleteProject);
 
-export default router;
+// Member management (Admin only)
+router.route("/:id/members")
+  .post(authorize(UserRole.ADMIN), validate(addMemberSchema), addMember)
+  .delete(authorize(UserRole.ADMIN), validate(removeMemberSchema), removeMember);
+
+export default router;

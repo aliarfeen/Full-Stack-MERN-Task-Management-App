@@ -38,3 +38,21 @@ export const updateProjectSchema = z.object({
     "At least one field must be provided for update"
   ),
 });
+
+export const addMemberSchema = z.object({
+  params: z.object({
+    id: objectIdSchema,
+  }),
+  body: z.object({
+    email: z.string().trim().email("Invalid email format"),
+  }),
+});
+
+export const removeMemberSchema = z.object({
+  params: z.object({
+    id: objectIdSchema,
+  }),
+  body: z.object({
+    email: z.string().trim().email("Invalid email format"),
+  }),
+});
