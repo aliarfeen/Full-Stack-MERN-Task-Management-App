@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import { TaskRepository } from "../repositories/task.repository.js";
 import { ProjectRepository } from "../repositories/project.repository.js";
 import { AppError } from "../lib/appError.js";
-import { ITask } from "../types/index.js";
+import { ITask, UserRole } from "../types/index.js";
 
 export class TaskUseCase {
   private taskRepo: TaskRepository;
@@ -13,34 +13,55 @@ export class TaskUseCase {
     this.projectRepo = new ProjectRepository();
   }
 
-  async createTask(projectId: string, userId: string, taskData: Partial<ITask>): Promise<ITask> {
-    const project = await this.projectRepo.findById(projectId);
-    if (!project || project.userId.toString() !== userId) {
+  private checkProjectAccess(project: any, userId: string, userRole?: UserRole): void {
+    if (!project) {
       throw new AppError("Project not found or unauthorized access", 404);
+    }
+
+    const isOwner = project.owner.toString() === userId;
+    const isMember = project.members.some((memberId: Types.ObjectId) => memberId.toString() === userId);
+    const isAdmin = userRole === UserRole.ADMIN;
+
+    if (!isOwner && !isMember && !isAdmin) {
+      throw new AppError("Project not found or unauthorized access", 404);
+    }
+  }
+
+  async createTask(projectId: string, userId: string, userRole: UserRole, taskData: Partial<ITask>): Promise<ITask> {
+    const project = await this.projectRepo.findById(projectId);
+    this.checkProjectAccess(project, userId, userRole);
+
+    if (taskData.assignee) {
+      const assigneeStr = taskData.assignee.toString();
+      const isAssigneeMember = project!.members.some((m) => m.toString() === assigneeStr) || project!.owner.toString() === assigneeStr;
+      if (!isAssigneeMember) {
+        throw new AppError("Assignee must be a member or owner of the project", 400);
+      }
     }
 
     return await this.taskRepo.create({
       ...taskData,
       projectId: new Types.ObjectId(projectId),
+      creator: new Types.ObjectId(userId),
     });
   }
 
   async getProjectTasks(
     projectId: string,
     userId: string,
-    filter: { status?: string; priority?: string; page?: number; limit?: number }
+    userRole: UserRole,
+    filter: { status?: string; priority?: string; assignee?: string; page?: number; limit?: number }
   ): Promise<{ tasks: ITask[]; total: number; page: number; limit: number }> {
     const project = await this.projectRepo.findById(projectId);
-    if (!project || project.userId.toString() !== userId) {
-      throw new AppError("Project not found or unauthorized access", 404);
-    }
+    this.checkProjectAccess(project, userId, userRole);
 
-    const { status, priority, page = 1, limit = 10 } = filter;
+    const { status, priority, assignee, page = 1, limit = 10 } = filter;
     const skip = (page - 1) * limit;
 
-    const queryFilter: { status?: string; priority?: string } = {};
+    const queryFilter: { status?: string; priority?: string; assignee?: string } = {};
     if (status) queryFilter.status = status;
     if (priority) queryFilter.priority = priority;
+    if (assignee) queryFilter.assignee = assignee;
 
     const [tasks, total] = await Promise.all([
       this.taskRepo.findAllByProjectId(projectId, { ...queryFilter, skip, limit }),
@@ -50,23 +71,29 @@ export class TaskUseCase {
     return { tasks, total, page, limit };
   }
 
-  async getTaskById(id: string, userId: string): Promise<ITask> {
+  async getTaskById(id: string, userId: string, userRole?: UserRole): Promise<ITask> {
     const task = await this.taskRepo.findById(id);
     if (!task) {
       throw new AppError("Task not found", 404);
     }
 
     const project = await this.projectRepo.findById(task.projectId.toString());
-    if (!project || project.userId.toString() !== userId) {
-      throw new AppError("Task not found or unauthorized access", 404);
-    }
+    this.checkProjectAccess(project, userId, userRole);
 
     return task;
   }
 
-  async updateTask(id: string, userId: string, updateData: Partial<ITask>): Promise<ITask> {
-    // Check ownership before updating
-    await this.getTaskById(id, userId);
+  async updateTask(id: string, userId: string, userRole: UserRole, updateData: Partial<ITask>): Promise<ITask> {
+    const task = await this.getTaskById(id, userId, userRole);
+
+    if (updateData.assignee) {
+      const project = await this.projectRepo.findById(task.projectId.toString());
+      const assigneeStr = updateData.assignee.toString();
+      const isAssigneeMember = project!.members.some((m) => m.toString() === assigneeStr) || project!.owner.toString() === assigneeStr;
+      if (!isAssigneeMember) {
+        throw new AppError("Assignee must be a member or owner of the project", 400);
+      }
+    }
 
     const updatedTask = await this.taskRepo.update(id, updateData);
     if (!updatedTask) {
@@ -76,9 +103,8 @@ export class TaskUseCase {
     return updatedTask;
   }
 
-  async deleteTask(id: string, userId: string): Promise<void> {
-    // Check ownership before deleting
-    await this.getTaskById(id, userId);
+  async deleteTask(id: string, userId: string, userRole: UserRole): Promise<void> {
+    await this.getTaskById(id, userId, userRole);
 
     await this.taskRepo.delete(id);
   }

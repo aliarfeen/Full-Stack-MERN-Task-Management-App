@@ -4,7 +4,7 @@ const objectIdSchema = z
   .string()
   .regex(/^[0-9a-fA-F]{24}$/, "Invalid ID format");
 
-const TaskStatusEnum = z.enum(["PENDING", "IN_PROGRESS", "DONE"]);
+const TaskStatusEnum = z.enum(["TODO", "IN_PROGRESS", "DONE"]);
 const TaskPriorityEnum = z.enum(["LOW", "MID", "HIGH"]);
 
 export const taskParamsSchema = z.object({
@@ -35,6 +35,7 @@ export const createTaskSchema = z.object({
       .string()
       .datetime() // Let it throw its default message to avoid the configuration overload trap
       .transform((val) => new Date(val)),
+    assignee: objectIdSchema.optional(),
   }),
 });
 
@@ -52,6 +53,7 @@ export const updateTaskSchema = z.object({
       .datetime()
       .transform((val) => new Date(val))
       .optional(),
+    assignee: objectIdSchema.nullable().optional(),
   }).refine(
     (data) => Object.keys(data).length > 0, 
     "At least one field must be provided for update"
@@ -65,7 +67,8 @@ export const taskFilterQuerySchema = z.object({
   query: z.object({
     status: TaskStatusEnum.optional(),
     priority: TaskPriorityEnum.optional(),
+    assignee: objectIdSchema.optional(),
     page: z.string().optional().transform((val) => (val ? parseInt(val, 10) : 1)),
     limit: z.string().optional().transform((val) => (val ? parseInt(val, 10) : 10)),
   }),
-});
+});

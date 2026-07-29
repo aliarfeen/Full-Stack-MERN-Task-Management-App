@@ -8,11 +8,12 @@ export class TaskRepository {
 
   async findAllByProjectId(
     projectId: string,
-    filter: { status?: string; priority?: string; skip?: number; limit?: number }
+    filter: { status?: string; priority?: string; assignee?: string; skip?: number; limit?: number }
   ): Promise<ITask[]> {
     const query: any = { projectId };
     if (filter.status) query.status = filter.status;
     if (filter.priority) query.priority = filter.priority;
+    if (filter.assignee) query.assignee = filter.assignee;
 
     const queryBuilder = Task.find(query).sort({ createdAt: -1 });
 
@@ -24,14 +25,16 @@ export class TaskRepository {
 
   async countByProjectId(
     projectId: string,
-    filter: { status?: string; priority?: string }
+    filter: { status?: string; priority?: string; assignee?: string }
   ): Promise<number> {
     const query: any = { projectId };
     if (filter.status) query.status = filter.status;
     if (filter.priority) query.priority = filter.priority;
+    if (filter.assignee) query.assignee = filter.assignee;
 
     return await Task.countDocuments(query);
   }
+
 
   async findById(id: string): Promise<ITask | null> {
     return await Task.findById(id);
