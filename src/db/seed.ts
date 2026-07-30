@@ -42,7 +42,18 @@ async function seedDatabase(): Promise<void> {
       password: hashedPassword,
       role: UserRole.MEMBER,
     });
-    console.log(`Seeded Users: ${adminUser.fullName} (${adminUser.email} - ADMIN), ${memberUser.fullName} (${memberUser.email} - MEMBER)`);
+
+    const secondMember = await User.create({
+      fullName: "John Doe",
+      email: "john@example.com",
+      password: hashedPassword,
+      role: UserRole.MEMBER,
+    });
+
+    console.log(`\n=== Seeded User Credentials (Default Password: password123) ===`);
+    console.log(`1. Admin User  : admin@example.com    (Role: ADMIN)`);
+    console.log(`2. Test Member : testuser@example.com (Role: MEMBER)`);
+    console.log(`3. John Doe    : john@example.com     (Role: MEMBER)\n`);
 
     // 3. Create seed projects with owner and members
     console.log("Creating seed projects...");
