@@ -91,6 +91,19 @@ npm run db:seed
 | **Admin User** | `admin@example.com` | `ADMIN` | `password123` |
 | **Test Member** | `testuser@example.com` | `MEMBER` | `password123` |
 | **John Doe** | `john@example.com` | `MEMBER` | `password123` |
+| **Sarah Connor** | `sarah@example.com` | `MEMBER` | `password123` |
+
+#### Seeded Projects Overview
+| Project Title | Owner | Members | Status |
+|---|---|---|---|
+| **Website Redesign (Project Alpha)** | Admin User | Admin User, Test Member, John Doe | `IN_PROGRESS` |
+| **Mobile App MVP (Project Beta)** | Test Member | Test Member, John Doe, Sarah Connor | `IN_PROGRESS` |
+| **DevOps & Infrastructure (Project Gamma)** | John Doe | John Doe, Admin User | `PENDING` |
+| **Internal Analytics Dashboard (Project Delta)** | Sarah Connor | Sarah Connor, Admin User, Test Member | `DONE` |
+
+#### Seeded Tasks (11 Tasks across 4 Projects)
+- Includes tasks across all status columns (`TODO`, `IN_PROGRESS`, `DONE`) and priorities (`LOW`, `MID`, `HIGH`).
+- Tasks are assigned to different members and owners to allow testing Kanban board movement, task editing, and assignment filters from any user perspective.
 
 ---
 
