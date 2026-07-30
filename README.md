@@ -30,9 +30,6 @@ electropi/
 │   ├── routes/                 # Express path routing & route middleware
 │   ├── usecases/               # Pure business & authorization logic
 │   └── server.ts               # Express entrypoint & static client serving
-├── docker-compose.yml          # Production Docker Compose setup
-├── docker-compose.dev.yml      # Development Docker Compose setup with hot-reload
-└── Dockerfile                  # Multi-stage production build
 ```
 
 ### Backend Architecture
@@ -135,33 +132,6 @@ npm run dev:client
 
 - **Frontend App**: `http://localhost:5173`
 - **Backend API**: `http://localhost:5000/api`
-
----
-
-## 🐳 Docker Deployment
-
-### Production Mode (Single Command)
-Builds a multi-stage Docker image and runs MongoDB + Express server (which serves the compiled React app as static files):
-```bash
-docker compose up --build
-```
-- **Application URL**: `http://localhost:5000`
-- **MongoDB Port**: `localhost:27017`
-
-### Development Mode (With Hot-Reload)
-Runs MongoDB, Express API server, and Vite dev server in containers with host volume mounts:
-```bash
-docker compose -f docker-compose.dev.yml up --build
-```
-- **React Frontend**: `http://localhost:5173`
-- **Express Backend**: `http://localhost:5000`
-
-### Stop Containers & Remove Volumes
-```bash
-docker compose down -v
-```
-
----
 
 ## 🧪 Testing & Code Quality
 

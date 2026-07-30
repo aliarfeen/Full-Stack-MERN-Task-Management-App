@@ -85,7 +85,7 @@ async function seedDatabase(): Promise<void> {
       owner: secondMember._id,
       members: [secondMember._id, adminUser._id],
       title: "DevOps & Infrastructure (Project Gamma)",
-      description: "CI/CD pipelines, Docker containerization, and automated MongoDB backups setup.",
+      description: "CI/CD pipelines, deployment automation, and automated MongoDB backups setup.",
       status: ProjectStatus.PENDING,
     });
 
@@ -179,8 +179,8 @@ async function seedDatabase(): Promise<void> {
       // Project 3 tasks
       {
         projectId: project3._id,
-        title: "Docker Compose Setup for Multi-stage Builds",
-        description: "Write Dockerfile and docker-compose.yml for backend server and MongoDB container.",
+        title: "Deployment Setup for Application Builds",
+        description: "Prepare production build scripts and service configuration for the backend server.",
         status: TaskStatus.DONE,
         priority: TaskPriority.HIGH,
         dueDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3),
