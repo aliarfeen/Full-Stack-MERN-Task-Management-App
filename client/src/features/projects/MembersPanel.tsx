@@ -103,12 +103,12 @@ export const MembersPanel: React.FC<MembersPanelProps> = ({
               </div>
 
               <div className="flex items-center gap-3">
-                <Badge
+                {/* <Badge
                   variant={member.role === UserRole.ADMIN ? 'purple' : 'info'}
                   size="sm"
                 >
                   {member.role}
-                </Badge>
+                </Badge> */}
 
                 {/* Owner or Admin remove action (cannot remove owner) */}
                 {canManageMembers && !isMemberOwner && (
