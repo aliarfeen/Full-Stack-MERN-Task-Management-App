@@ -26,7 +26,10 @@ export class ProjectUseCase {
     });
   }
 
-  async getUserProjects(userId: string): Promise<IProject[]> {
+  async getUserProjects(userId: string, userRole?: UserRole): Promise<IProject[]> {
+    if (userRole === UserRole.ADMIN) {
+      return await this.projectRepo.findAll();
+    }
     return await this.projectRepo.findAllByMembership(userId);
   }
 

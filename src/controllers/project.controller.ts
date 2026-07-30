@@ -21,9 +21,9 @@ export const createProject = async (req: AuthRequest, res: Response, next: NextF
 export const getAllProjects = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user?._id.toString();
-    if (!userId) throw new AppError("Unauthorized", 401);
+    if (!userId || !req.user) throw new AppError("Unauthorized", 401);
 
-    const projects = await projectUseCase.getUserProjects(userId);
+    const projects = await projectUseCase.getUserProjects(userId, req.user.role);
     res.status(200).json({ status: "success", results: projects.length, data: projects });
   } catch (error) {
     next(error);

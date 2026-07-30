@@ -8,6 +8,13 @@ export class ProjectRepository {
     return populated || created;
   }
 
+  async findAll(): Promise<IProject[]> {
+    return await Project.find()
+      .populate("owner", "fullName email role")
+      .populate("members", "fullName email role")
+      .sort({ createdAt: -1 });
+  }
+
   async findAllByMembership(userId: string): Promise<IProject[]> {
     return await Project.find({
       $or: [{ owner: userId }, { members: userId }],
