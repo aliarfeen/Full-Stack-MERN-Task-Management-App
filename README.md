@@ -128,3 +128,29 @@ All endpoints except `/api/auth/register` and `/api/auth/login` require a valid 
 ## Testing via Postman
 A complete Postman collection containing all route configuration examples and parameters is included in the root folder as `task-manager-postman_collection.json`. Import this file into Postman to test all endpoints.
 
+---
+
+## Docker Support
+
+### Production Mode (Single-command deployment)
+Builds multi-stage Docker images and starts MongoDB + Express server (serving React client static build):
+```bash
+docker compose up --build
+```
+- App available at: `http://localhost:5000`
+- MongoDB available at: `localhost:27017`
+
+### Development Mode (With Hot-Reload)
+Runs MongoDB, backend API server, and React Vite dev server with volume mounts for live code changes:
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+- React Frontend: `http://localhost:5173`
+- Express Backend: `http://localhost:5000`
+
+### Stop & Clean Up
+```bash
+docker compose down -v
+```
+
+
