@@ -62,10 +62,7 @@ app.use("/api/status", (_req, res) => {
 if (process.env.NODE_ENV === "production") {
   const clientDistPath = path.join(process.cwd(), "client/dist");
   app.use(express.static(clientDistPath));
-  app.get("*", (_req, res, next) => {
-    if (_req.path.startsWith("/api")) {
-      return next();
-    }
+  app.get(/^\/(?!api(?:\/|$)).*/, (_req, res) => {
     res.sendFile(path.join(clientDistPath, "index.html"));
   });
 }
@@ -87,4 +84,3 @@ if (process.env.NODE_ENV !== "test") {
 }
 
 export default app;
-

@@ -12,6 +12,19 @@ services:
       timeout: 5s
       retries: 5
 
+  db-setup:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    env_file: .env
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/todo
+      - NODE_ENV=development
+    command: sh -c "npm run db:migrate && npm run db:seed"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
   server:
     build:
       context: .
@@ -27,8 +40,8 @@ services:
       - ./src:/app/src
       - ./package.json:/app/package.json
     depends_on:
-      mongo:
-        condition: service_healthy
+      db-setup:
+        condition: service_completed_successfully
 
   client:
     build:
