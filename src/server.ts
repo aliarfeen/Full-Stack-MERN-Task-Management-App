@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import "dotenv/config";
 import cors from "cors";
 import helmet from "helmet";
@@ -56,6 +57,18 @@ app.use("/api/users", userRoutes);
 app.use("/api/status", (_req, res) => {
   res.json({ status: "success", message: "Task Management server is live" });
 });
+
+// Serve static client build in production
+if (process.env.NODE_ENV === "production") {
+  const clientDistPath = path.join(process.cwd(), "client/dist");
+  app.use(express.static(clientDistPath));
+  app.get("*", (_req, res, next) => {
+    if (_req.path.startsWith("/api")) {
+      return next();
+    }
+    res.sendFile(path.join(clientDistPath, "index.html"));
+  });
+}
 
 // Global error handler (must be registered after all routes)
 app.use(errorHandler);
