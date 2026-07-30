@@ -1,156 +1,201 @@
-# Task Management Application API
+# Full-Stack Task Management Application
 
-A premium, layered-architecture task management API built with Node.js, Express, TypeScript, MongoDB (Mongoose), and Zod.
-
----
-
-## Technical Features
-
-1. **Layered Architecture**: Organized separation of concerns following clean domain patterns:
-   - **Routes**: Handle request path routing, attach authentication, apply role authorization, and apply input validation middleware.
-   - **Controllers**: Coordinate HTTP request parsing, status codes, and JSON responses.
-   - **Use Cases (Services)**: House pure business logic & authorization rules (independent of Express/HTTP frames).
-   - **Repositories**: Encapsulate Mongoose query execution and DB operations.
-   - **Models**: Define data schemas and database constraints.
-2. **Role-Based Access Control (RBAC)**: Support for **ADMIN** and **MEMBER** user roles with elevated permissions for Admin users.
-3. **Multi-User Project Membership**: Projects support owners and multiple member users.
-4. **Email-Based User Discovery & Member Management**: Admins can search users by email and manage project members using email addresses.
-5. **Robust Input Validation**: Strict validation for request bodies, parameters, and query parameters via **Zod** middleware.
-6. **Password Security**: All user passwords are dynamically salted and hashed using `bcryptjs` upon registration.
-7. **Structured Error Handling**: Dynamic error response formatting handling specific DB errors (CastError, duplicate fields), validation errors (ZodError), and custom operational errors (via a custom `AppError` class).
-8. **Database Migrations and Seeds**: Includes scripts to synchronize database indexes, backfill fields, and seed mock users (Admin + Member), projects, and tasks.
-9. **Automated Testing Suite**: Full automated test suite using `vitest` + `supertest` with in-memory MongoDB.
+A full-stack task management application built with a **Node.js/Express TypeScript API** and a modern **React 19 / Vite / TailwindCSS SPA**.
 
 ---
 
-## Prerequisites
+## 🏗️ Architecture Overview
 
-- **Node.js** (v18.x or higher recommended)
-- **MongoDB** (local server running, or a MongoDB Atlas URI)
+The project is structured as a monorepo containing a layered backend REST API and a feature-based React client.
 
----
-
-## Quick Start Setup
-
-### 1. Install Dependencies
-Navigate to the root directory and install npm dependencies:
-```bash
-npm install
+```text
+electropi/
+├── client/                     # Frontend (React 19, Vite, TailwindCSS)
+│   ├── src/
+│   │   ├── api/                # Axios instance with JWT interceptor & API endpoints
+│   │   ├── components/         # Reusable UI components, layouts, and form fields
+│   │   ├── features/           # Feature modules (auth, projects, tasks)
+│   │   ├── routes/             # React Router v7 configuration & ProtectedRoute
+│   │   ├── stores/             # Zustand state management (authStore)
+│   │   ├── types/              # Shared TypeScript definitions
+│   │   └── validation/         # Zod client schemas
+│   └── vite.config.ts          # Vite server & API proxy setup
+├── src/                        # Backend REST API (Node.js, Express, TypeScript)
+│   ├── controllers/            # HTTP request handlers
+│   ├── db/                     # Migrations & seed scripts
+│   ├── lib/                    # DB connection utility
+│   ├── middleware/         # Auth, RBAC authorization, Zod validation, error handling
+│   ├── models/                 # Mongoose schemas & TypeScript interfaces
+│   ├── repositories/           # Database queries & population logic
+│   ├── routes/                 # Express path routing & route middleware
+│   ├── usecases/               # Pure business & authorization logic
+│   └── server.ts               # Express entrypoint & static client serving
+├── docker-compose.yml          # Production Docker Compose setup
+├── docker-compose.dev.yml      # Development Docker Compose setup with hot-reload
+└── Dockerfile                  # Multi-stage production build
 ```
 
-### 2. Configure Environment Variables
-Copy the `.env.example` file to create a `.env` file:
-```bash
-cp .env.example .env
-```
-Open `.env` and fill in the values:
+### Backend Architecture
+- **Layered Clean Architecture**: Strict separation of concerns (Routes → Controllers → Use Cases → Repositories → Mongoose Models).
+- **Document Population**: `owner`, `members`, `creator`, and `assignee` fields are populated on database queries.
+- **Role-Based Access Control (RBAC)**: Support for **ADMIN** and **MEMBER** system roles, with **Project Owner** permissions for project-level member management.
+- **Input Validation & Security**: **Zod** middleware for body/query validation, `bcryptjs` password hashing, JWT authentication, **Helmet** security headers, and rate limiting.
+
+### Frontend Architecture
+- **Tech Stack**: React 19, Vite 6, TailwindCSS v4, TanStack React Query v5, Zustand v5, React Router v7, Lucide Icons, React Hook Form + Zod.
+- **Features**:
+  - **Auth**: Login & Registration with JWT token persistence.
+  - **Projects**: Dashboard, project detail view, project creation/editing, and Member Management (Project Owners and Admins can search existing users by email and add/remove project members).
+  - **Tasks**: Interactive Kanban Board (Todo, In Progress, Done), Tabular task view, priority/status filtering, search, task creation, editing, assignment, and deletion.
+
+---
+
+## ⚙️ Environment Variables
+
+Create a `.env` file in the root directory (copied from `.env.example`):
+
 ```env
+# MongoDB Connection String (local MongoDB or Atlas URI)
 MONGODB_URI=mongodb://127.0.0.1:27017/todo
+
+# Server Configuration
 PORT=5000
 NODE_ENV=development
+
+# JWT Secret Key
 JWT_SECRET=your-strong-random-secret
+
+# Client CORS URL (Production)
+CLIENT_URL=http://localhost:5000
 ```
 
-### 3. Run Database Migrations
-Synchronize database indexes and migrate collection schemas:
+---
+
+## 🗄️ Database Migrations & Seeding
+
+### 1. Database Migrations
+Synchronize database indexes and schema migrations:
 ```bash
 npm run db:migrate
 ```
 
-### 4. Seed Database Data
-Populate the database with seed users, projects, and tasks:
+### 2. Database Seeding
+Populate the database with initial users, projects, and tasks:
 ```bash
 npm run db:seed
 ```
-*Seeded Default Users:*
-- **Admin**: Email `admin@example.com` | Password `password123` | Role `ADMIN`
-- **Member**: Email `testuser@example.com` | Password `password123` | Role `MEMBER`
+
+#### Seeded User Credentials (Default Password: `password123`)
+| Name | Email | System Role | Default Password |
+|---|---|---|---|
+| **Admin User** | `admin@example.com` | `ADMIN` | `password123` |
+| **Test Member** | `testuser@example.com` | `MEMBER` | `password123` |
+| **John Doe** | `john@example.com` | `MEMBER` | `password123` |
 
 ---
 
-## Running the Application
+## 🚀 Quick Start & Local Setup
 
-### Development Mode
-Runs the TypeScript compiler and launches the server:
+### 1. Install Dependencies
 ```bash
-npm run dev
+# Install root dependencies
+npm install
+
+# Install client dependencies
+npm install --prefix client
 ```
 
-### Production Mode
-Builds the TypeScript codebase and runs the production server:
+### 2. Start Development Servers
+Run both backend API (`port 5000`) and frontend Vite dev server (`port 5173`) concurrently:
 ```bash
-npm run build
-npm run start
+npm run dev:all
 ```
 
-### Running Automated Tests
-Executes the comprehensive automated API test suite covering authentication, authorization, project membership, task CRUD, and filtering:
+Alternatively, run them separately:
 ```bash
-npm test
+# Server only
+npm run dev:server
+
+# Client only
+npm run dev:client
 ```
 
----
-
-## API Endpoints Overview
-
-All endpoints except `/api/auth/register` and `/api/auth/login` require a valid JWT Bearer token in the `Authorization` header (`Authorization: Bearer <token>`).
-
-### 1. Authentication (`/api/auth`)
-- `POST /register`: Registers a new user (defaults to `MEMBER` role; requires `fullName`, `email`, `password`).
-- `POST /login`: Log in and receive JWT token + user profile (requires `email`, `password`).
-- `POST /logout`: Client-side logout acknowledgement.
-
-### 2. Users (`/api/users`)
-- `GET /search?email=<query>`: Search registered users by email substring for member discovery.
-
-### 3. Projects (`/api/project`)
-- `POST /`: Create a new project (current user becomes owner & initial member).
-- `GET /`: Get all projects belonging to or shared with the logged-in user.
-- `GET /:id`: Retrieve specific project details (requires membership or Admin role).
-- `PUT /:id`: Update project details (`title`, `description`, `status`).
-- `DELETE /:id`: Delete project and cascade delete all its tasks.
-- `POST /:id/members`: *(Admin only)* Add member to project by email (`{ "email": "user@example.com" }`).
-- `DELETE /:id/members`: *(Admin only)* Remove member from project by email (`{ "email": "user@example.com" }`).
-
-### 4. Tasks (`/api/task`)
-- `POST /project/:projectId`: Create a task in a project (`title`, `description`, `priority`, `dueDate`, optional `status`, optional `assignee`). `creator` is automatically set from JWT.
-- `GET /project/:projectId`: Retrieve project tasks with query filters (`status`, `priority`, `assignee`, `page`, `limit`).
-- `GET /:id`: Get specific task details.
-- `PUT /:id`: Update task attributes (`title`, `description`, `status`, `priority`, `dueDate`, `assignee`).
-- `DELETE /:id`: Delete a task.
-
-#### Valid Enums:
-- **Task Statuses**: `TODO`, `IN_PROGRESS`, `DONE`
-- **Task Priorities**: `LOW`, `MID`, `HIGH`
+- **Frontend App**: `http://localhost:5173`
+- **Backend API**: `http://localhost:5000/api`
 
 ---
 
-## Testing via Postman
-A complete Postman collection containing all route configuration examples and parameters is included in the root folder as `task-manager-postman_collection.json`. Import this file into Postman to test all endpoints.
+## 🐳 Docker Deployment
 
----
-
-## Docker Support
-
-### Production Mode (Single-command deployment)
-Builds multi-stage Docker images and starts MongoDB + Express server (serving React client static build):
+### Production Mode (Single Command)
+Builds a multi-stage Docker image and runs MongoDB + Express server (which serves the compiled React app as static files):
 ```bash
 docker compose up --build
 ```
-- App available at: `http://localhost:5000`
-- MongoDB available at: `localhost:27017`
+- **Application URL**: `http://localhost:5000`
+- **MongoDB Port**: `localhost:27017`
 
 ### Development Mode (With Hot-Reload)
-Runs MongoDB, backend API server, and React Vite dev server with volume mounts for live code changes:
+Runs MongoDB, Express API server, and Vite dev server in containers with host volume mounts:
 ```bash
 docker compose -f docker-compose.dev.yml up --build
 ```
-- React Frontend: `http://localhost:5173`
-- Express Backend: `http://localhost:5000`
+- **React Frontend**: `http://localhost:5173`
+- **Express Backend**: `http://localhost:5000`
 
-### Stop & Clean Up
+### Stop Containers & Remove Volumes
 ```bash
 docker compose down -v
 ```
 
+---
 
+## 🧪 Testing & Code Quality
+
+### Automated API Tests
+Executes Vitest automated API test suite covering authentication, RBAC, project membership, and task CRUD using an in-memory MongoDB server:
+```bash
+npm test
+```
+
+### Frontend Code Linting
+Run Oxlint code quality checks on the client application:
+```bash
+npm run lint --prefix client
+```
+
+---
+
+## 📡 API Endpoints Overview
+
+All protected endpoints require a valid JWT Bearer token in the `Authorization` header (`Authorization: Bearer <token>`).
+
+### 🔑 Authentication (`/api/auth`)
+- `POST /register`: Register a new user (`fullName`, `email`, `password`).
+- `POST /login`: Log in user and receive JWT token (`email`, `password`).
+- `POST /logout`: Client logout acknowledgement.
+
+### 👤 Users (`/api/users`)
+- `GET /search?email=<query>`: Search registered users by email for member discovery.
+
+### 📁 Projects (`/api/project`)
+- `POST /`: Create project (creator becomes owner and first member).
+- `GET /`: List projects where the user is an owner or member.
+- `GET /:id`: Get project details.
+- `PUT /:id`: Update project details.
+- `DELETE /:id`: Delete project and cascade-delete tasks.
+- `POST /:id/members`: Add member to project by email (Project Owner or Admin only).
+- `DELETE /:id/members`: Remove member from project by email (Project Owner or Admin only).
+
+### 📋 Tasks (`/api/task`)
+- `POST /project/:projectId`: Create task in project.
+- `GET /project/:projectId`: List project tasks with pagination and filters (`status`, `priority`, `assignee`, `page`, `limit`).
+- `GET /:id`: Get task details.
+- `PUT /:id`: Update task details (status, priority, assignee, etc.).
+- `DELETE /:id`: Delete task.
+
+---
+
+## 📬 Postman Collection
+A complete Postman collection is included in the project root:
+`task-manager-postman_collection.json`. Import this file into Postman to test all REST API endpoints.
